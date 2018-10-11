@@ -31,20 +31,21 @@ class VmapProxy {
       root.att('xmlns:vmap', 'http://www.iab.net/vmap-1.0');
       root.att('version', '1.0');
       let vastPromiseChain = [];
-      let adPods = [];
+      let adPods = {};
       breaks.forEach(b => {
         let offset = b;
         let p = new Promise((resolve, reject) => {
           vendor.fetchVast().then(xml => {
             xml = xml.replace('<?xml version="1.0" encoding="UTF-8" ?>', '');
-            adPods.push({ offset: offset, xml: xml });
+            adPods[offset] = { offset: offset, xml: xml };
             resolve();
           });
         });
         vastPromiseChain.push(p);
       });
       Promise.all(vastPromiseChain).then(() => {
-        adPods.forEach(pod => {
+        breaks.forEach(offset => {
+          let pod = adPods[offset];
           let eleAdBreak = root.ele('vmap:AdBreak')
             .att('breakType', 'linear')
             .att('timeOffset', pod.offset);
