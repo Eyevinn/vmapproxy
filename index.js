@@ -31,25 +31,29 @@ class VmapProxy {
       root.att('xmlns:vmap', 'http://www.iab.net/vmap-1.0');
       root.att('version', '1.0');
       let vastPromiseChain = [];
+      let adPods = [];
       breaks.forEach(b => {
         let offset = b;
         let p = new Promise((resolve, reject) => {
           vendor.fetchVast().then(xml => {
             xml = xml.replace('<?xml version="1.0" encoding="UTF-8" ?>', '');
-            let eleAdBreak = root.ele('vmap:AdBreak')
-              .att('breakType', 'linear')
-              .att('timeOffset', offset);
-            let eleAdSource = eleAdBreak.ele('vmap:AdSource')
-              .att('id', offset)
-              .att('allowMultipleAds', 'true')
-              .att('followRedirects', 'true');
-            eleAdSource.ele('vmap:VASTAdData').raw(xml);
+            adPods.push({ offset: offset, xml: xml });
             resolve();
           });
         });
         vastPromiseChain.push(p);
       });
       Promise.all(vastPromiseChain).then(() => {
+        adPods.forEach(pod => {
+          let eleAdBreak = root.ele('vmap:AdBreak')
+            .att('breakType', 'linear')
+            .att('timeOffset', pod.offset);
+          let eleAdSource = eleAdBreak.ele('vmap:AdSource')
+            .att('id', pod.offset)
+            .att('allowMultipleAds', 'true')
+            .att('followRedirects', 'true');
+          eleAdSource.ele('vmap:VASTAdData').raw(pod.xml);
+        });
         let xml = root.end({ pretty: true });
         res.sendRaw(200, xml, {
           "Content-Type": "text/xml"      
