@@ -39,6 +39,9 @@ class VmapProxy {
             xml = xml.replace('<?xml version="1.0" encoding="UTF-8" ?>', '');
             adPods[offset] = { offset: offset, xml: xml };
             resolve();
+          })
+          .catch(err => {
+            reject(err);
           });
         });
         vastPromiseChain.push(p);
