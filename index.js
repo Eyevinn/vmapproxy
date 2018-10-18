@@ -35,7 +35,7 @@ class VmapProxy {
       breaks.forEach(b => {
         let offset = b;
         let p = new Promise((resolve, reject) => {
-          vendor.fetchVast().then(xml => {
+          vendor.fetchVast(req.query).then(xml => {
             xml = xml.replace('<?xml version="1.0" encoding="UTF-8" ?>', '');
             adPods[offset] = { offset: offset, xml: xml };
             resolve();
