@@ -3,11 +3,14 @@ const debug = require('debug')('vmap-proxy');
 const xmlbuilder = require('xmlbuilder');
 const VendorsFactory = require('./vendors/factory.js');
 
+const AD_REQUEST_TIMEOUT = process.env.AD_REQUEST_TIMEOUT || 2000;
+
 class VmapProxy {
   constructor() {
     this.server = restify.createServer();
     this.server.use(restify.plugins.queryParser());
 
+    this.server.get('/', this._handleHealthCheck.bind(this));
     this.server.get('/vmap/:vendor', this._handleVmap.bind(this));
   }
 
@@ -15,6 +18,11 @@ class VmapProxy {
     this.server.listen(port, () => {
       debug(`${this.server.name} listening at ${this.server.url}`);
     });
+  }
+
+  _handleHealthCheck(req, res, next) {
+    res.send(200, { status: 'ok' });
+    next();
   }
 
   _handleVmap(req, res, next) {
@@ -35,7 +43,7 @@ class VmapProxy {
       breaks.forEach(b => {
         let offset = b;
         let p = new Promise((resolve, reject) => {
-          vendor.fetchVast(req.query).then(xml => {
+          vendor.fetchVast(req.query, { timeout: AD_REQUEST_TIMEOUT }).then(xml => {
             xml = xml.replace('<?xml version="1.0" encoding="UTF-8" ?>', '');
             adPods[offset] = { offset: offset, xml: xml };
             resolve();

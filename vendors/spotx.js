@@ -6,17 +6,23 @@ class VendorSpotX {
 
   }
 
-  fetchVast(params) {
+  fetchVast(params, options) {
     // http://search.spotxchange.com/vast/3.0/79391?VPI[]=MP4&media_transcoding=high&ssai[enabled]=1&ssai[vendor]=yospace&content[livestream]=0&pod[size]=3
     return new Promise((resolve, reject) => {
       let accountId = '79391';
+      let timeout = 2000;
       if (params) {
         if (params.accountId) {
           accountId = params.accountId;
         }
       }
-      debug(`accountId=${accountId}`);
-      fetch(`https://search.spotxchange.com/vast/3.0/${accountId}?VPI[]=MP4&media_transcoding=high&ssai[enabled]=1&ssai[vendor]=yospace&content[livestream]=0&pod[size]=1`, { timeout: 2000 })
+      if (options) {
+        if (options.timeout) {
+          timeout = options.timeout;          
+        }
+      }
+      debug(`accountId=${accountId}, timeout=${timeout}`);
+      fetch(`https://search.spotxchange.com/vast/3.0/${accountId}?VPI[]=MP4&media_transcoding=high&ssai[enabled]=1&ssai[vendor]=yospace&content[livestream]=0&pod[size]=1`, { timeout: timeout })
       .then(res => res.text())
       .then(body => {
         resolve(body);
